@@ -1,111 +1,79 @@
-# Manufacturing Quality Inspection with CNN Anomaly Detection
+# Manufacturing Quality Inspection — Steel Surface Defect Classification
 
-A convolutional autoencoder learns the appearance of defect-free manufactured parts and flags unusual test images using reconstruction error.
+A reproducible six-class CNN image-classification project for identifying common defects in hot-rolled steel surfaces.
 
-## Dataset: MVTec AD
+> **Dataset transparency:** This is an independent portfolio benchmark using the public NEU Surface Defect Database (NEU-DET). It is not presented as confidential data or work from a previous employer. The Kaggle page currently lists the dataset licence as unknown; review the source terms before reuse. Dataset images are downloaded at run time and are not redistributed in this repository.
 
-This project is designed for the official **MVTec Anomaly Detection (MVTec AD)** benchmark. The dataset contains more than 5,000 high-resolution images across 15 object and texture categories. It provides defect-free training images, test images with normal and anomalous examples, and pixel-precise anomaly masks. [Official MVTec dataset page](https://www.mvtec.com/research-teaching/datasets/mvtec-ad)
+## Problem
 
-**License:** CC BY-NC-SA 4.0. The dataset is for non-commercial use; review the official terms before use. The image data are not copied into this GitHub repository.
+Classify a steel-surface inspection image into one of six defect categories:
+- Crazing
+- Inclusion
+- Patches
+- Pitted surface
+- Rolled-in scale
+- Scratches
 
-![Convolutional autoencoder architecture](docs/autoencoder_architecture.svg)
+## Dataset
 
-## Problem and approach
+- 1,800 grayscale images, 200×200 pixels
+- 300 images per defect class
+- Original dataset from Northeastern University
+- Public mirror: [NEU Surface Defect Database on Kaggle](https://www.kaggle.com/datasets/kaustubhdikshit/neu-surface-defect-database)
+- The project downloads the public dataset with KaggleHub when training starts.
 
-In many inspection settings, defect examples are scarce and can vary. This project uses an unsupervised anomaly-detection approach:
+The dataset is a controlled benchmark; it does not cover every factory camera, material, lighting condition or production line.
 
-1. Train a convolutional autoencoder using only defect-free `train/good` images.
-2. Hold out a subset of normal training images to calibrate anomaly thresholds.
-3. Reconstruct each test image.
-4. Calculate per-pixel reconstruction error and average it into an image-level anomaly score.
-5. Evaluate image-level defect detection and pixel-level localization against the provided ground-truth masks.
+## Methodology
 
-A high reconstruction error indicates that the image contains patterns unlike the normal training examples. This is a research baseline, not a guarantee that every defect will be detected.
+1. Download and index the six labelled image classes.
+2. Create a reproducible stratified 70/15/15 train/validation/test split.
+3. Resize grayscale images and normalize pixel values.
+4. Train a CNN with convolution, batch normalization, dropout and light augmentation.
+5. Use early stopping and learning-rate reduction.
+6. Evaluate once on the held-out test set using accuracy, balanced accuracy, macro precision/recall/F1, weighted F1 and a confusion matrix.
 
-## Dataset setup
-
-Download and extract MVTec AD from the official MVTec page. Select a category (the default is `bottle`) and place the category folder under `data/`:
-
-```text
-data/
-  bottle/
-    train/
-      good/
-        *.png
-    test/
-      good/
-        *.png
-      broken_large/
-        *.png
-      broken_small/
-        *.png
-      contamination/
-        *.png
-    ground_truth/
-      broken_large/
-        *_mask.png
-      broken_small/
-        *_mask.png
-      contamination/
-        *_mask.png
-```
-
-The actual defect folder names depend on the selected category. Keep the original MVTec directory names and mask filenames unchanged. The script automatically discovers test defect folders and pairs each image with its ground-truth mask.
-
-## Train and evaluate
-
-Python 3.10–3.12 with a compatible TensorFlow build is recommended.
+## Run
 
 ```bash
 pip install -r requirements.txt
-python src/train.py --data data --category bottle
+python src/train.py
 ```
 
 Optional settings:
 
 ```bash
-python src/train.py --data data --category cable --epochs 80 --image-size 128 --batch-size 16
+python src/train.py --epochs 12 --image-size 128 --batch-size 32
 ```
 
-The training script saves the autoencoder, normal-only calibrated thresholds, image-level and pixel-level metrics, holdout predictions/plots and a qualitative anomaly-map panel under `outputs/`.
-
-## Inference
-
-After training:
+Predict a single image or a directory:
 
 ```bash
-python src/predict.py --input path/to/new_part.png
-python src/predict.py --input path/to/inspection_batch/
+python src/predict.py --input path/to/inspection_images/
 ```
 
-The script writes image-level anomaly scores and good/defect predictions to `outputs/predictions.csv`.
+## Results
 
-## Evaluation
+GitHub Actions downloads the public dataset, trains the CNN on a hosted runner and commits the test metrics, plots, predictions and model artifact into `outputs/`. Results are valid only after a successful run; see `outputs/metrics.json`.
 
-Image-level metrics:
-- Accuracy, precision, recall and F1
-- ROC-AUC and average precision
-- Confusion matrix
+## Outputs
 
-Pixel-level localization metrics:
-- Precision, recall and F1 at the calibrated pixel threshold
-- Pixel ROC-AUC and average precision
-- Qualitative comparison of input image, reconstruction-error map and ground-truth mask
-
-Thresholds are calibrated from a held-out subset of normal training images, not from the test labels. Results apply only to the selected MVTec category and image resolution.
-
-## Current repository status
-
-The code and experiment design are committed. No MVTec image files have been supplied or copied into this repository, so **there are no trained weights or measured performance numbers committed yet**. The training script generates these artifacts when the selected category is available. This is preferable to inventing accuracy or presenting a fabricated training result.
+- `outputs/metrics.json` — dataset provenance, split, training and test metrics
+- `outputs/quality_inspection_cnn.keras` — trained CNN
+- `outputs/class_names.json`
+- `outputs/test_predictions.csv`
+- `outputs/confusion_matrix.png`
+- `outputs/training_history.png`
+- `outputs/per_class_f1.png`
 
 ## Limitations
 
-- Reconstruction-based anomaly detection can miss subtle defects or respond to harmless lighting and pose changes.
-- A threshold calibrated on one category/camera may not transfer to another.
-- MVTec AD is a controlled benchmark and does not replace validation on production-line images.
-- The dataset's non-commercial licence must be respected.
-- Image-level detection does not by itself prove suitability for safety-critical inspection.
+- NEU-DET is a relatively small dataset collected under a controlled setup.
+- The Kaggle listing reports no explicit licence; check source terms and do not redistribute the images.
+- Random image splitting does not establish cross-factory, cross-camera or future-batch generalization.
+- This model performs image-level six-class classification. It does not draw defect bounding boxes or segment defect pixels.
+- Do not use the benchmark as a safety-critical inspection system without plant-specific validation.
 
-## Skills demonstrated
+## Skills
 
-Python, TensorFlow/Keras, convolutional autoencoders, unsupervised learning, image preprocessing, anomaly detection, pixel-level evaluation and computer-vision visualization.
+Python, TensorFlow/Keras, CNNs, image preprocessing, augmentation, multi-class classification, stratified splitting and model evaluation.
