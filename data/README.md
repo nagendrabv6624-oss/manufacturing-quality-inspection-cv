@@ -1,10 +1,17 @@
-# Image dataset
+# MVTec AD image data
 
-Place labelled image files under:
+Download MVTec AD from the [official MVTec page](https://www.mvtec.com/research-teaching/datasets/mvtec-ad). Select one category and extract it under this folder. The default category is `bottle`.
 
-- `train/good/`
-- `train/defective/`
-- `validation/good/`
-- `validation/defective/`
+Expected category structure:
 
-Use a dataset you have permission to use. Keep the validation split independent. No images are bundled in this repository. If you use MVTec AD or another public dataset, cite the original dataset and document the selected category and label-mapping decisions here.
+```text
+<category>/
+  train/good/
+  test/good/
+  test/<defect_type>/
+  ground_truth/<defect_type>/<image_stem>_mask.png
+```
+
+The script trains only on `train/good`, calibrates thresholds using a held-out subset of those normal images, and evaluates on the test images. Defect folders and their mask folders must keep their original names.
+
+**No images are bundled here.** MVTec AD is licensed under CC BY-NC-SA 4.0 and is for non-commercial use. Do not upload the downloaded dataset into this public repository.
