@@ -1,27 +1,24 @@
-# Project 3 — Manufacturing Quality Inspection
+# Project 3 — Manufacturing Quality Inspection CV
 
-## Problem
-Detect unusual or defective manufactured parts from inspection images when defect examples are limited.
+## Industrial problem
+Classify hot-rolled steel surface images into common defect categories to support a first-pass visual quality-inspection workflow.
 
-## Dataset
-MVTec AD: more than 5,000 high-resolution images across 15 object and texture categories, including normal training images, anomalous test images and pixel-level defect masks.
+## Public benchmark
+NEU Surface Defect Database (NEU-DET): 1,800 grayscale 200×200 images across six classes, 300 per class. Original dataset from Northeastern University; accessed through a public Kaggle mirror. The Kaggle listing currently reports no explicit licence. This is an independent benchmark, not previous-employer data.
 
-Source: Official MVTec AD benchmark. Licence: CC BY-NC-SA 4.0 (non-commercial).
+Source: https://www.kaggle.com/datasets/kaustubhdikshit/neu-surface-defect-database
+
+## Defect classes
+Crazing, inclusion, patches, pitted surface, rolled-in scale and scratches.
 
 ## Model
-Convolutional autoencoder:
-- Encoder compresses the input image into a compact representation.
-- Decoder reconstructs the image.
-- Mean absolute reconstruction error is used as an anomaly score.
-- Pixel-level error maps provide a basic defect-localization signal.
+A CNN with convolution blocks, batch normalization, pooling, augmentation, dropout and softmax classification.
 
 ## Evaluation
-- Image-level: precision, recall, F1, ROC-AUC, average precision and confusion matrix.
-- Pixel-level: precision, recall, F1, ROC-AUC and average precision against ground-truth masks.
-- Thresholds are calibrated using held-out normal training images only.
+Stratified 70/15/15 train/validation/test split. Report held-out accuracy, balanced accuracy, macro precision/recall/F1, weighted F1 and confusion matrix. Per-class F1 and training curves are saved.
 
-## Current status
-The code and methodology are ready in the repository. Dataset images have not been supplied or trained in this workspace; therefore no model accuracy or trained weights are claimed. A selected MVTec category is required to produce genuine evaluation results.
+## Reproducible results
+GitHub Actions downloads the dataset, trains the CNN and commits metrics, plots, test predictions and model weights. Only cite results visible in outputs/metrics.json after a successful run.
 
-## Important limitation
-MVTec AD is a benchmark and is non-commercial under its licence. Performance on a benchmark does not prove readiness for a real production line.
+## Limitations
+The dataset is small and controlled; no cross-factory/camera validation is claimed. The classifier predicts defect category but does not localize defects. The dataset licence must be checked before reuse; images are not redistributed here.
