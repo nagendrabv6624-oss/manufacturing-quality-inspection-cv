@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="340" viewBox="0 0 960 340" role="img" aria-labelledby="t d">
+<title id="t">Convolutional autoencoder for industrial anomaly detection</title><desc id="d">Normal image enters convolutional encoder, compact latent representation, decoder reconstructs the image; reconstruction error creates anomaly map and score.</desc>
+<rect width="960" height="340" fill="#fff"/>
+<text x="32" y="42" font-family="Arial,sans-serif" font-size="24" font-weight="700" fill="#172033">CNN autoencoder — anomaly detection</text>
+<g font-family="Arial,sans-serif" text-anchor="middle">
+<g stroke-width="2">
+<rect x="28" y="105" width="140" height="92" rx="12" fill="#edf3fa" stroke="#8aa5c7"/>
+<rect x="215" y="105" width="145" height="92" rx="12" fill="#edf3fa" stroke="#8aa5c7"/>
+<rect x="407" y="105" width="135" height="92" rx="12" fill="#f4effa" stroke="#9a83b9"/>
+<rect x="590" y="105" width="145" height="92" rx="12" fill="#edf3fa" stroke="#8aa5c7"/>
+<rect x="785" y="105" width="145" height="92" rx="12" fill="#e7f4ef" stroke="#23866d"/>
+</g>
+<g fill="#172033" font-size="17" font-weight="700">
+<text x="98" y="140">Normal image</text><text x="98" y="164">128 × 128</text>
+<text x="287" y="140">Encoder</text><text x="287" y="164">Conv + pooling</text>
+<text x="474" y="140">Latent code</text><text x="474" y="164">Compressed</text>
+<text x="662" y="140">Decoder</text><text x="662" y="164">Upsampling</text>
+<text x="857" y="140">Reconstruction</text><text x="857" y="164">Compare pixels</text>
+</g>
+<g stroke="#64748b" stroke-width="2.5" fill="none"><path d="M168 151 H210"/><path d="M360 151 H402"/><path d="M542 151 H585"/><path d="M735 151 H780"/></g>
+<g fill="#64748b"><path d="M210 145 L218 151 L210 157 Z"/><path d="M402 145 L410 151 L402 157 Z"/><path d="M585 145 L593 151 L585 157 Z"/><path d="M780 145 L788 151 L780 157 Z"/></g>
+</g>
+<path d="M857 197 V238 H480 V258" stroke="#23866d" stroke-width="2.5" fill="none"/>
+<rect x="340" y="258" width="280" height="54" rx="10" fill="#e7f4ef" stroke="#23866d" stroke-width="2"/>
+<text x="480" y="291" text-anchor="middle" font-family="Arial,sans-serif" font-size="17" font-weight="700" fill="#172033">Reconstruction error → anomaly map + score</text>
+</svg>
