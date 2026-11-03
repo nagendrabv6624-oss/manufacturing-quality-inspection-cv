@@ -8,6 +8,8 @@ This project is designed for the official **MVTec Anomaly Detection (MVTec AD)**
 
 **License:** CC BY-NC-SA 4.0. The dataset is for non-commercial use; review the official terms before use. The image data are not copied into this GitHub repository.
 
+![Convolutional autoencoder architecture](docs/autoencoder_architecture.svg)
+
 ## Problem and approach
 
 In many inspection settings, defect examples are scarce and can vary. This project uses an unsupervised anomaly-detection approach:
