@@ -1,19 +1,15 @@
-from __future__ import annotations
-import argparse,json
+"""Predict NEU-DET defect classes using the trained HOG/PCA/SVM pipeline."""
+import argparse, json
 from pathlib import Path
-import numpy as np,pandas as pd,tensorflow as tf
-ROOT=Path(__file__).resolve().parents[1]
-EXTS={".jpg",".jpeg",".png",".bmp",".tif",".tiff"}
+import cv2, joblib, numpy as np
+CLASSES=["crazing","inclusion","patches","pitted_surface","rolled-in_scale","scratches"]
 def main():
- p=argparse.ArgumentParser();p.add_argument("--input",required=True,help="Image file or directory");p.add_argument("--output",default="outputs/new_predictions.csv");p.add_argument("--image-size",type=int,default=128);a=p.parse_args()
- model_path=ROOT/"outputs"/"quality_inspection_cnn.keras";class_path=ROOT/"outputs"/"class_names.json"
- if not model_path.exists() or not class_path.exists():raise FileNotFoundError("Train first with python src/train.py")
- src=Path(a.input);files=[src] if src.is_file() else sorted(x for x in src.rglob("*") if x.is_file() and x.suffix.lower() in EXTS)
- if not files:raise ValueError("No supported images found")
- model=tf.keras.models.load_model(model_path);classes=json.loads(class_path.read_text());rows=[]
- for path in files:
-  raw=tf.io.read_file(str(path));img=tf.io.decode_image(raw,channels=1,expand_animations=False);img=tf.image.resize(img,[a.image_size,a.image_size]);img=tf.cast(img,tf.float32)/255
-  prob=model.predict(tf.expand_dims(img,0),verbose=0)[0];idx=int(np.argmax(prob))
-  rows.append({"image":str(path),"predicted_defect":classes[idx],"confidence":float(prob[idx])})
- out=pd.DataFrame(rows);dest=Path(a.output);dest=dest if dest.is_absolute() else ROOT/dest;dest.parent.mkdir(parents=True,exist_ok=True);out.to_csv(dest,index=False);print(out.to_string(index=False))
-if __name__=="__main__":main()
+    ap=argparse.ArgumentParser(); ap.add_argument("--input",required=True); ap.add_argument("--model",default="outputs/neu_det_hog_pca_svm.joblib"); args=ap.parse_args()
+    model=joblib.load(args.model); p=Path(args.input); files=[p] if p.is_file() else sorted(x for x in p.rglob("*") if x.suffix.lower() in {".jpg",".jpeg",".png",".bmp"})
+    hog=cv2.HOGDescriptor((64,64),(16,16),(8,8),(8,8),9)
+    for f in files:
+        im=cv2.imread(str(f),cv2.IMREAD_GRAYSCALE)
+        if im is None: continue
+        x=hog.compute(cv2.resize(im,(64,64),interpolation=cv2.INTER_AREA)).reshape(1,-1)
+        print(f"{f}: {CLASSES[int(model.predict(x)[0])]}")
+if __name__=="__main__": main()
