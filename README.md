@@ -1,79 +1,61 @@
 # Manufacturing Quality Inspection — Steel Surface Defect Classification
 
-A reproducible six-class CNN image-classification project for identifying common defects in hot-rolled steel surfaces.
+An independently trained six-class steel surface defect classifier using the NEU-DET benchmark.
 
-> **Dataset transparency:** This is an independent portfolio benchmark using the public NEU Surface Defect Database (NEU-DET). It is not presented as confidential data or work from a previous employer. The Kaggle page currently lists the dataset licence as unknown; review the source terms before reuse. Dataset images are downloaded at run time and are not redistributed in this repository.
+## Dataset actually used
 
-## Problem
-
-Classify a steel-surface inspection image into one of six defect categories:
-- Crazing
-- Inclusion
-- Patches
-- Pitted surface
-- Rolled-in scale
-- Scratches
-
-## Dataset
-
+This run used the NEU-DET archive uploaded for this project:
 - 1,800 grayscale images, 200×200 pixels
-- 300 images per defect class
-- Original dataset from Northeastern University
-- Public mirror: [NEU Surface Defect Database on Kaggle](https://www.kaggle.com/datasets/kaustubhdikshit/neu-surface-defect-database)
-- The project downloads the public dataset with KaggleHub when training starts.
+- 1,440 training images (240 per class)
+- 360 supplied validation images (60 per class)
+- Six classes: `crazing`, `inclusion`, `patches`, `pitted_surface`, `rolled-in_scale`, `scratches`
+- The archive also includes Pascal VOC XML bounding-box annotations.
 
-The dataset is a controlled benchmark; it does not cover every factory camera, material, lighting condition or production line.
+The supplied training split was used for fitting. The supplied validation split was stratified into 180 validation images and 180 final test images (30 per class). The final test subset was not used for fitting.
 
-## Methodology
+## Trained approach
 
-1. Download and index the six labelled image classes.
-2. Create a reproducible stratified 70/15/15 train/validation/test split.
-3. Resize grayscale images and normalize pixel values.
-4. Train a CNN with convolution, batch normalization, dropout and light augmentation.
-5. Use early stopping and learning-rate reduction.
-6. Evaluate once on the held-out test set using accuracy, balanced accuracy, macro precision/recall/F1, weighted F1 and a confusion matrix.
+- Convert images to grayscale and resize to 64×64.
+- Extract 1,764 Histogram of Oriented Gradients (HOG) features.
+- Standardize features, reduce to 128 dimensions with PCA, then classify with an RBF Support Vector Machine.
+- Fixed random seed: 42.
 
-## Run
+This is an image-level classifier. It does not localize defects using the XML bounding boxes.
+
+## Measured held-out test results
+
+| Metric | Result |
+|---|---:|
+| Accuracy | **77.78%** |
+| Macro precision | 79.59% |
+| Macro recall | 77.78% |
+| Macro F1 | 77.51% |
+| Weighted F1 | 77.51% |
+
+Per-class results and full provenance are in [outputs/metrics.json](outputs/metrics.json). Individual held-out predictions are in [outputs/test_predictions.csv](outputs/test_predictions.csv).
+
+## Reproduce
+
+Expected directory structure:
+
+```
+NEU-DET/
+  train/images/<class>/*.jpg
+  validation/images/<class>/*.jpg
+```
+
+Install dependencies and run:
 
 ```bash
 pip install -r requirements.txt
-python src/train.py
+python src/train.py --data-dir /path/to/NEU-DET
+python src/predict.py --input /path/to/image.jpg
 ```
 
-Optional settings:
+Training writes the fitted pipeline and metrics to `outputs/`. The dataset images are not included in this repository.
 
-```bash
-python src/train.py --epochs 12 --image-size 128 --batch-size 32
-```
+## Dataset provenance and limitations
 
-Predict a single image or a directory:
+NEU-DET is a controlled public research benchmark originating from Northeastern University. The Kaggle mirror currently does not specify a clear dataset licence; check the source terms before reuse. This repository does not redistribute the raw images.
 
-```bash
-python src/predict.py --input path/to/inspection_images/
-```
-
-## Results
-
-GitHub Actions downloads the public dataset, trains the CNN on a hosted runner and commits the test metrics, plots, predictions and model artifact into `outputs/`. Results are valid only after a successful run; see `outputs/metrics.json`.
-
-## Outputs
-
-- `outputs/metrics.json` — dataset provenance, split, training and test metrics
-- `outputs/quality_inspection_cnn.keras` — trained CNN
-- `outputs/class_names.json`
-- `outputs/test_predictions.csv`
-- `outputs/confusion_matrix.png`
-- `outputs/training_history.png`
-- `outputs/per_class_f1.png`
-
-## Limitations
-
-- NEU-DET is a relatively small dataset collected under a controlled setup.
-- The Kaggle listing reports no explicit licence; check source terms and do not redistribute the images.
-- Random image splitting does not establish cross-factory, cross-camera or future-batch generalization.
-- This model performs image-level six-class classification. It does not draw defect bounding boxes or segment defect pixels.
-- Do not use the benchmark as a safety-critical inspection system without plant-specific validation.
-
-## Skills
-
-Python, TensorFlow/Keras, CNNs, image preprocessing, augmentation, multi-class classification, stratified splitting and model evaluation.
+The dataset is small and does not establish performance across different mills, cameras, materials, or lighting conditions. The test set is a held-out subset of the supplied validation split, not a separate factory or acquisition campaign. Do not use this benchmark model for safety-critical production decisions without plant-specific validation.
