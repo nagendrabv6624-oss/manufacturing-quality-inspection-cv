@@ -1,6 +1,4 @@
-tensorflow-cpu==2.16.1
 numpy>=1.26
-pandas>=2.1
 scikit-learn>=1.4
-matplotlib>=3.8
-kagglehub>=0.3.0
+opencv-python-headless>=4.8
+joblib>=1.3
